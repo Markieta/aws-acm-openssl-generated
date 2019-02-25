@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+if [ -z "$1" ]
+then
+    echo "Provide CN"
+    exit 1
+fi
+
+if [ -z "$2" ]
+then
+    echo "Provide email"
+    exit 2
+fi
+
+key="my-aws.key"
+crt="my-aws.crt"
+
+openssl genrsa 2048 > "$key"
+openssl req -new -x509 -nodes -sha1 -days 3650 -extensions v3_ca -config openssl.cnf -extensions subject_alt_name -key "$key" -subj "/C=CA/ST=ON/L=Toronto/O=Funhouse/OU=Clowns/CN=$1/emailAddress=$2"  > "$crt"
+
+aws acm import-certificate --certificate "file://$crt" --private-key "file://$key" --region us-east-1
+
+rm "$key" "$crt"
